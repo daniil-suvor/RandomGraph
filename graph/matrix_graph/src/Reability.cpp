@@ -6,12 +6,9 @@ double MatrixGraph::_ReabilityK_2() {
 }
 
 double MatrixGraph::_ReabilityK_3() {
-	auto node = this->begin();
-	int node1 = GetFirstExistent(node);
-	node++;
-	int node2 = GetFirstExistent(node);
-	node++;
-	int node3 = GetFirstExistent(node);
+	int node1 = GetFirstExistent(0);
+	int node2 = GetFirstExistent(node1 + 1);
+	int node3 = GetFirstExistent(node2 + 1);
 
 	double a = Probability(node1, node2);
 	double b = Probability(node2, node3);
@@ -22,14 +19,10 @@ double MatrixGraph::_ReabilityK_3() {
 
 
 double MatrixGraph::_ReabilityK_4() {
-	auto node = this->begin();
-	int node1 = GetFirstExistent(node);
-	node++;
-	int node2 = GetFirstExistent(node);
-	node++;
-	int node3 = GetFirstExistent(node);
-	node++;
-	int node4 = GetFirstExistent(node);
+	int node1 = GetFirstExistent(0);
+	int node2 = GetFirstExistent(node1 + 1);
+	int node3 = GetFirstExistent(node2 + 1);
+	int node4 = GetFirstExistent(node3 + 1);
 
 	double a = Probability(node1, node2);
 	double b = Probability(node2, node3);
@@ -48,16 +41,11 @@ double MatrixGraph::_ReabilityK_4() {
 }
 
 double MatrixGraph::_ReabilityK_5() {
-	auto node = this->begin();
-	int node1 = GetFirstExistent(node);
-	node++;
-	int node2 = GetFirstExistent(node);
-	node++;
-	int node3 = GetFirstExistent(node);
-	node++;
-	int node4 = GetFirstExistent(node);
-	node++;
-	int node5 = GetFirstExistent(node);
+	int node1 = GetFirstExistent(0);
+	int node2 = GetFirstExistent(node1 + 1);
+	int node3 = GetFirstExistent(node2 + 1);
+	int node4 = GetFirstExistent(node3 + 1);
+	int node5 = GetFirstExistent(node4 + 1);
 
 
 	double a = Probability(node1, node2);
@@ -181,8 +169,7 @@ std::list<int> MatrixGraph::FindArticulation() {
 	std::unordered_map<int, DFCStruct*> tree;
 
 	Clear_Visited();
-	NodeIterator iter = this->begin();
-	int node = GetFirstExistent(iter);
+	int node = GetFirstExistent(0);
 	int startNode = node;
 	SetVisited(node);
 	stack.push_back(node);

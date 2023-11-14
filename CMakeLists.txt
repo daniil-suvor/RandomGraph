@@ -6,4 +6,4 @@ add_subdirectory(graph)
 
 add_executable(main main.cpp)
 target_link_libraries(main graph)
-target_compile_features(main INTERFACE cxx_std_20)
+set_property(TARGET main PROPERTY CXX_STANDARD 20)

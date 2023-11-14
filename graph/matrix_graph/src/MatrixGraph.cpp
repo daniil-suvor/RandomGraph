@@ -4,6 +4,7 @@ MatrixGraph::MatrixGraph(int graphSize) : Graph() {
 	this->graphSize = graphSize;
 	this->arraySize = graphSize * (graphSize + 1) / 2;
 	nodes = new double[arraySize]();
+	degres = std::vector(graphSize, 0);
 }
 
 MatrixGraph::~MatrixGraph() {
@@ -18,13 +19,16 @@ MatrixGraph::MatrixGraph(const MatrixGraph& graph) {
 	this->arraySize = graph.arraySize;
 	this->nodes = new double[arraySize]();
 	std::memcpy(nodes, graph.nodes, sizeof(double) * arraySize);
+	this->degres = graph.degres;
 }
 
 bool MatrixGraph::ContainsNode(int node) {
-	return Get(node, node) != 0;
+	return node < graphSize && degres[node] != 0;
 }
 
 double MatrixGraph::Probability(int node1, int node2) {
+	if (NodeDegree(node1) == 0 || NodeDegree(node2) == 0)
+		return 0;
 	return Get(node1, node2);
 }
 
@@ -47,7 +51,9 @@ void MatrixGraph::Set(int i, int j, double p) {
 }
 
 int MatrixGraph::NodeDegree(int node) {
-	int degree = static_cast<int>(Get(node, node));
+	if (node >= graphSize)
+		return 0;
+	int degree = degres[node];
 	if (degree != 0) {
 		if (degree > 0)
 			degree--;
@@ -58,29 +64,49 @@ int MatrixGraph::NodeDegree(int node) {
 }
 
 void MatrixGraph::IncreaseDegree(int node) {
-	int index = Index(node, node);
-	if (nodes[index] == 0.0) {
+	if (node >= graphSize)
+		return;
+	int degree = degres[node];
+	if (degree == 0) {
 		nodeNumbers++;
-		nodes[index] = 1;
+		degres[node] = 1;
 	}
-	if (nodes[index] < 0)
-		nodes[index] -= 1;
+	if (degree < 0)
+		degres[node] -= 1;
 	else
-		nodes[index] += 1;
+		degres[node] += 1;
 }
 
 void MatrixGraph::ReduceDegree(int node) {
-	int index = Index(node, node);
-	if (nodes[index] > 0)
-		nodes[index] -= 1;
+	if (node >= graphSize)
+		return;
+	if (degres[node] > 0)
+		degres[node] -= 1;
 	else
-		nodes[index] += 1;
+		degres[node] += 1;
 }
 
-int MatrixGraph::GetFirstExistent(NodeIterator& node) {
-	for (; node != this->end(); node++) {
-		if (*node != 0)
-			return node.node;
+template <typename F>
+int MatrixGraph::EnumerateAdjacentNode(int node, F function) {
+	int index = node;
+	for (int adjNode = 0; adjNode < node; adjNode++) {
+		if (function(nodes[index]))
+			return node;
+		index += graphSize - adjNode - 1;
+	}
+	index++;
+	for (int adjNode = node + 1; adjNode < graphSize; adjNode++) {
+		if (function(nodes[index]))
+			return node;
+		index++;
+	}
+	return -1;
+}
+
+int MatrixGraph::GetFirstExistent(int starNode) {
+	for (int node = starNode; node < graphSize; node++) {
+		if (degres[node] != 0)
+			return node;
 	}
 	return -1;
 }
@@ -117,7 +143,7 @@ void MatrixGraph::RemoveNode(int node) {
 			ReduceDegree(iter.adjNode);
 		}
 	}
-	Set(node, node, 0.0);
+	degres[node] = 0;
 	nodeNumbers--;
 }
 
@@ -135,14 +161,14 @@ int MatrixGraph::EdgeContraction(int node1, int node2) {
 
 void MatrixGraph::Clear_Visited() {
 	int index = 0;
-	for (auto iter = this->begin(); iter != this->end(); iter++)
-		*iter = std::abs(*iter);
+	for (auto degre = degres.begin(); degre != degres.end(); degre++)
+		*degre = std::abs(*degre);
 }
 
 void MatrixGraph::SetVisited(int node) {
 	if (node >= graphSize)
 		return;
-	nodes[Index(node, node)] *= -1;
+	degres[node] *= -1;
 }
 bool MatrixGraph::IsVisited(int node) {
 	return NodeDegree(node) <= 0;
@@ -160,16 +186,15 @@ std::list<std::pair<int, double>> MatrixGraph::GetAdjustment(int node) {
 }
 
 std::pair<int, int> MatrixGraph::GetTwoNeighbors() {
-	NodeIterator node = this->begin();
-	GetFirstExistent(node);
-	return std::make_pair(node.node, GetFirst(node.node));
+	int node = GetFirstExistent(0);
+	return std::make_pair(node, GetFirst(node));
 }
 
 int MatrixGraph::GetFirst(int node) {
 	if (node >= graphSize)
 		return -1;
 	for (auto iter = this->begin(node); iter != this->end(node); iter++) {
-		if (*iter != 0.0)
+		if (*iter != 0.0 )
 			return iter.adjNode;
 	}
 	return -1;
@@ -192,7 +217,7 @@ int MatrixGraph::GetFirstNotVisited(int node) {
 		return -1;
 
 	for (auto iter = this->begin(node); iter != this->end(node); iter++) {
-		if (*iter != 0  && !IsVisited(iter.adjNode))
+		if (*iter != 0.0  && !IsVisited(iter.adjNode))
 			return iter.adjNode;
 	}
 
@@ -203,8 +228,7 @@ bool MatrixGraph::Connectivity() {
 	if (nodeNumbers == 0)
 		return true;
 	Clear_Visited();
-	NodeIterator iter = this->begin();
-	int node = GetFirstExistent(iter);
+	int node = GetFirstExistent(0);
 	std::list<int> stack;
 	SetVisited(node);
 	stack.push_back(node);
@@ -236,8 +260,7 @@ bool MatrixGraph::Connectivity() {
 
 void MatrixGraph::DFC() {
 	Clear_Visited();
-	NodeIterator iter = this->begin();
-	int node = GetFirstExistent(iter);
+	int node = GetFirstExistent(0);
 	std::list<int> stack;
 	SetVisited(node);
 	stack.push_back(node);
@@ -266,14 +289,16 @@ std::list<Graph*> MatrixGraph::GetComponents() {
 		component->reability = 1;
 
 		this->DFC();
-
-		for (auto iter = this->begin(); iter != this->end(); iter++) {
-			if (*iter == 0.0)
+		int node = -1;
+		for (auto degre = degres.begin(); degre != degres.end(); degre++) {
+			node++;
+			if (*degre == 0)
 				continue;
-			if (*iter < 0)
-				this->RemoveNode(iter.node);
+			if (*degre < 0)
+				this->RemoveNode(node);
 			else
-				component->RemoveNode(iter.node);
+				component->RemoveNode(node);
+
 		}
 		res.push_back(component);
 	}

@@ -19,9 +19,10 @@ public:
 	bool ContainsNode(int node) override;
 	int NodeDegree(int node) override;
 	int EdgeContraction(int node1, int node2) override;
-
-	NodeIterator begin() { return NodeIterator(&nodes[0], graphSize); }
-	NodeIterator end() { return NodeIterator(&nodes[arraySize], graphSize); }
+	template <typename F>
+	int EnumerateAdjacentNode(int node, F function);
+	//NodeIterator begin() { return NodeIterator(&nodes[0], graphSize); }
+	//NodeIterator end() { return NodeIterator(&nodes[arraySize], graphSize); }
 
 	AdjacentIterator begin(int node) { return AdjacentIterator(&nodes[node], graphSize, node); }
 	AdjacentIterator end(int node) {
@@ -34,6 +35,7 @@ private:
 	double* nodes;
 	int graphSize;
 	size_t arraySize;
+	std::vector<int> degres;
 	double _ReabilityK_2() override;
 	double _ReabilityK_3() override;
 	double _ReabilityK_4() override;
@@ -57,7 +59,7 @@ private:
 	void Set(int i, int j, double p);
 	void IncreaseDegree(int node);
 	void ReduceDegree(int node);
-	int GetFirstExistent(NodeIterator& node);
+	int GetFirstExistent(int node);
 	int GetFirst(int node);
 	int GetLast(int node);
 	int Index(int i, int j);

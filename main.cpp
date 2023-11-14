@@ -3,6 +3,8 @@
 #include "graph/src/Graph.h"
 #include "graph/matrix_graph/src/MatrixGraph.h"
 #include <chrono>
+#include "my_class/MyClass.h"
+
 
 Graph* CreateGraph(int n, bool oop = true) {
     if (oop)
@@ -46,7 +48,7 @@ Graph* test(int n, bool oop = true) {
 
     return graph;
 }
-void speed_test(int n, Graph* graph) {
+long long speed_test(int n, Graph* graph) {
     auto start = std::chrono::high_resolution_clock::now();
     for (int i = 0; i < n; i++)
         graph->Reability();
@@ -54,6 +56,20 @@ void speed_test(int n, Graph* graph) {
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
 
     std::cout << duration.count() << std::endl;
+    return  duration.count();
+}
+
+void speed_compare_test(int iterations, int graph_test) {
+    Graph* graph = test(graph_test, true);
+    std::cout << "time for OOP graph ";
+    auto timeOOP = speed_test(iterations, graph);
+    delete graph;
+    graph = test(graph_test, false);
+    std::cout << "time for Matrix graph ";
+    auto timeMatrix = speed_test(iterations, graph);
+    delete graph;
+    std::cout << "time difference (OOP - Matrix) = " << timeOOP - timeMatrix << std::endl;
+    std::cout << "OOP / Matrix = " << timeOOP / (long double)timeMatrix << std::endl;
 }
 
 void test_reability(Graph* graph) {
@@ -64,9 +80,10 @@ void test_reability(Graph* graph) {
 
 int main()
 {
-    auto graph = test(0, false);
-    test_reability(graph);
+    //auto graph = test(3, false); // 3495774
+    //test_reability(graph);
     //speed_test(10, graph);
-    delete graph;
+    //delete graph;
+    speed_compare_test(100, 0);
 }
 
