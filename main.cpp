@@ -59,6 +59,19 @@ long long speed_test(int n, Graph* graph) {
     return  duration.count();
 }
 
+long long speed_test_OMP(int n, Graph* graph, int th_num) {
+    auto start = std::chrono::high_resolution_clock::now();
+    for (int i = 0; i < n; i++)
+        graph->Reability_OMP(th_num);//), (int)12 * 0.8);
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
+
+    std::cout << duration.count() << std::endl;
+    return  duration.count();
+
+}
+
+
 void speed_compare_test(int iterations, int graph_test) {
     Graph* graph = test(graph_test, true);
     std::cout << "time for OOP graph ";
@@ -72,18 +85,37 @@ void speed_compare_test(int iterations, int graph_test) {
     std::cout << "OOP / Matrix = " << timeOOP / (long double)timeMatrix << std::endl;
 }
 
+void speed_compare_omp_test(int iterations, Graph* graph, int th_num) {
+    std::cout << "time for OMP ";
+    auto timeOMP = speed_test_OMP(iterations, graph, th_num);
+
+    std::cout << "time for usual ";
+    auto timeUsual = speed_test(iterations, graph);
+    std::cout << "time difference (OMP - usual) = " << timeOMP - timeUsual << std::endl;
+    std::cout << "OMP / usual = " << timeOMP / (long double)timeUsual << std::endl;
+}
+
 void test_reability(Graph* graph) {
     std::cout << "Connectivity " << graph->Connectivity() << std::endl;
 
     std::cout << "Reability " << graph->Reability() << std::endl;
 }
 
+void test_reability_OMP(Graph* graph, int th_num) {
+    std::cout << "Connectivity " << graph->Connectivity() << std::endl;
+
+    std::cout << "Reability " << graph->Reability_OMP(th_num) << std::endl;
+}
+
 int main()
 {
-    //auto graph = test(3, false); // 3495774
+    auto graph = test(2, false); // 3495774
+    test_reability_OMP(graph, 10);
+    test_reability(graph);
+    speed_compare_omp_test(10, graph, 10);
     //test_reability(graph);
     //speed_test(10, graph);
-    //delete graph;
-    speed_compare_test(100, 0);
+    delete graph;
+    //speed_compare_test(100, 0);
 }
 

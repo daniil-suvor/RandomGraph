@@ -16,6 +16,7 @@
 class Graph
 {
 protected:
+	bool ready;
 	int iteration;
 	int nodeNumbers;
 	double reability;
@@ -47,9 +48,12 @@ protected:
 	virtual std::list<int> FindArticulation() = 0;
 	double ArticulationProcesing(std::list<int>& articulationNodes);
 
+	Graph* one_thread_method();
+	int prepare_graph(int node_cut, int num_queue, int th_num, std::queue<Graph*>* queues);
+
 public:
 	std::list<Graph*> SplitByNode(int node);
-	Graph() { iteration = 0; reability = 1; nodeNumbers = 0; }
+	Graph() { iteration = 0; reability = 1; nodeNumbers = 0; ready = false; }
 	virtual ~Graph() {};
 	virtual Graph* Coppy() = 0;
 	virtual bool Connectivity() = 0;
@@ -62,6 +66,9 @@ public:
 	virtual int EdgeContraction(int node1, int node2) = 0;
 
 	double Reability();
+
+	double Reability_OMP(int th_num);
+	double Reability_OMP(int th_num, int node_cut);
 
 	void GenKN(int n, double probability);
 	void Grid(int n, int m, double probability);
